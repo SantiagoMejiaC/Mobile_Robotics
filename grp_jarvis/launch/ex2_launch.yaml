@@ -18,10 +18,10 @@ launch:
  #   exec: "ScanInterpreter.py"
 #    name: "ScanInterpreter"
 
-- node:
-    pkg: "grp_jarvis"
-    exec: "scan_echo.py"
-    name: "scan_echo"
+#- node:
+#    pkg: "grp_jarvis"
+#    exec: "scan_echo.py"
+#    name: "scan_echo"
 
 
     

@@ -18,7 +18,7 @@ class ScanInterpreter(Node):
         self.turn_right = False
 
         self.create_subscription(LaserScan, 'scan', self.scan_callback, 10)
-        self.timer_control= self.create_timer(0.05, self.control_callback)
+        self.timer_control= self.create_timer(0.5, self.control_callback)
 
     def scan_callback(self, scan_msg):
         self.obstacles = []
@@ -34,7 +34,7 @@ class ScanInterpreter(Node):
 
     def control_callback(self):
         rect = []
-        x_min, x_max, y_min, y_max = -1, 1, 0.0, 0.5
+        x_min, x_max, y_min, y_max = -1, 1, -1, 0.5
 
         for point in self.obstacles:
             x, y = point
@@ -44,8 +44,8 @@ class ScanInterpreter(Node):
 
         if rect:  # If obstacles are present
             obstacle = True
-            left_count = sum(1 for x, y in rect if x < 0)
-            right_count = sum(1 for x, y in rect if x > 0)
+            left_count = sum(1 for point in rect if y < 0)
+            right_count = sum(1 for point in rect if y > 0)
 
             if left_count > right_count:
                 self.turn_left = True
@@ -62,6 +62,9 @@ class ScanInterpreter(Node):
         # Publish velocity command based on obstacle distribution
         cmd_vel_msg = Twist()
         if  obstacle:
+
+            #cmd_vel_msg.linear.x = 0
+
             if self.turn_left:
                 cmd_vel_msg.angular.z = 0.5  # Adjust the angular velocity as needed
             elif self.turn_right:
