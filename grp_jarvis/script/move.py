@@ -1,76 +1,87 @@
-#!/usr/bin/python3
 import rclpy
+import math
 from rclpy.node import Node
+from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Bool
-import random
 
+class ScanInterpreter(Node):
 
-
-# Define a ROS node class for controlling the robot's movement
-class MoveNode(Node):
     def __init__(self):
-        super().__init__('move_node')
-        
-        # Create a publisher for sending Twist messages to control the robot's movement
-        self.velocity_publisher = self.create_publisher(Twist, '/cmd_vel', 10)
-        
-        # Create a subscriber to receive an abort signal
-        self.stopSub = self.create_subscription(Bool, 'Stop', self.ScanInterpreter.control_callback, 10)
-        
-        # Flag to track whether an abort signal has been received
-        self.abort_signal_received = True
+        super().__init__('scan_interpreter')
+        self.obstacles = []
+        self.cmd_vel_publisher = self.create_publisher(Twist, 'cmd_vel', 10)
+        self.turn_left = False
+        self.turn_right = False
 
-    # Method to move the robot randomly or turn based on the abort signal
-    def move_randomly(self):
+        self.create_subscription(LaserScan, 'scan', self.scan_callback, 10)
+        self.timer_control= self.create_timer(0.05, self.control_callback)
 
+    def scan_callback(self, scan_msg):
+        self.obstacles = []
+        angle = scan_msg.angle_min
+        for a_distance in scan_msg.ranges:
+            if 0.1 < a_distance and a_distance < 10.0:
+                a_point = [
+                    math.cos(angle) * a_distance,
+                    math.sin(angle) * a_distance
+                ]
+                self.obstacles.append(a_point)
+            angle += scan_msg.angle_increment
 
-        while rclpy.ok():
-            self.get_logger().info("Running...")
+    def control_callback(self):
+        rect = []
+        x_min, x_max, y_min, y_max = -1, 1, 0.0, 0.5
 
-            
+        for point in self.obstacles:
+            x, y = point
 
-            # If no abort signal is received, move randomly
-            if  self.abort_signal_received == False:
-                # Generate random linear and angular velocities
-                velo = Twist()
-                velo.linear.x = 0.5 # Random linear velocity between -0.5 and 0.5 m/s
-                
-                self.velocity_publisher.publish(velo)
+            if y_max > y > y_min and x_min < x < x_max:
+                rect.append(point)
+
+        if rect:  # If obstacles are present
+            obstacle = True
+            left_count = sum(1 for x, y in rect if x < 0)
+            right_count = sum(1 for x, y in rect if x > 0)
+
+            if left_count > right_count:
+                self.turn_left = True
+                self.turn_right = False
             else:
-                # If abort signal is received, stop the robot and turn until the signal is not received
-                self.get_logger().info("Abort signal received. Turning...")
-                self.velocity_publisher.publish(Twist(0))  # Stop the robot
+                self.turn_left = False
+                self.turn_right = True
 
-                # Turn until the abort signal is not received
-                while self.abort_signal_received and rclpy.ok():
-                    self.get_logger().info("Turning...")
-                    # Set angular velocity to turn the robot in place
-                    self.velocity_publisher.publish(Twist(angular=Twist.Angular(z=0.5)))
-                    rclpy.spin_once(self, timeout_sec=0.1)
+        else:
+            obstacle = False
+            self.turn_left = False
+            self.turn_right = False
 
-            # Clear the abort signal flag if it's no longer received
-            if not self.abort_signal_received:
-                self.get_logger().info("Abort signal cleared.")
+        # Publish velocity command based on obstacle distribution
+        cmd_vel_msg = Twist()
+        if  obstacle:
+            if self.turn_left:
+                cmd_vel_msg.angular.z = 0.5  # Adjust the angular velocity as needed
+            elif self.turn_right:
+                cmd_vel_msg.angular.z = -0.5  # Adjust the angular velocity as needed
+        else:
+            cmd_vel_msg.linear.x = 0.5  # Forward linear velocity when no obstacles
 
-            rclpy.spin_once(self, timeout_sec=0.1)
+        self.cmd_vel_publisher.publish(cmd_vel_msg)
 
-    # Callback function for handling the abort signal
-    def abort_callback(self, msg):
-        self.abort_signal_received = msg.data
-
-# Main function to initialize the ROS node and run the robot movement control
 def main():
     rclpy.init()
-    node = MoveNode()
-    node.move_randomly()
 
-    node.destroy_node()
-    rclpy.shutdown()
+    scan_interpreter = ScanInterpreter()
 
-    print("tuto_move :: STOP.")
+    executor = rclpy.executors.MultiThreadedExecutor()
+    executor.add_node(scan_interpreter)
 
-# Entry point to start the program
+    try:
+        executor.spin()
+    finally:
+        executor.shutdown()
+        scan_interpreter.destroy_node()
+        rclpy.shutdown()
+
 if __name__ == '__main__':
     main()
-
