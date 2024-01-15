@@ -8,10 +8,10 @@ launch:
     exec: "rviz2"
     name: "rviz2"
     
-- node:
-    pkg: "grp_jarvis"
-    exec: "move.py"
-    name: "scan_interpreter"
+#- node:
+#    pkg: "grp_jarvis"
+#    exec: "move.py"
+#    name: "scan_interpreter"
 
 #- executable:
 #    cmd: gnome-terminal --tab -e 'ros2 run  teleop_twist_keyboard teleop_twist_keyboard'
