@@ -1,7 +1,7 @@
 launch:
 #include another launch file
 - include:
-     file: "$(find-pkg-share grp_jarvis)/launch/minimal_launch.py"
+     file: "$(find-pkg-share grp_jarvis)/launch/minimal_launch.yaml"
 
 - node:
     pkg: "rviz2"
@@ -12,6 +12,11 @@ launch:
     pkg: "grp_jarvis"
     exec: "move.py"
     name: "scan_interpreter"
+
+#- node:
+    #pkg: "grp_jarvis"
+    #exec: "tuto_vision.py"
+    #name: "Vision"
 
 #- executable:
 #    cmd: gnome-terminal --tab -e 'ros2 run  teleop_twist_keyboard teleop_twist_keyboard'

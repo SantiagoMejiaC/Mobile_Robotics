@@ -13,12 +13,13 @@ class ScanInterpreter(Node):
     def __init__(self):
         super().__init__('scan_interpreter')
         self.obstacles = []
-        self.cmd_vel_publisher = self.create_publisher(Twist, 'cmd_vel', 10)
+        self.cmd_vel_publisher = self.create_publisher(Twist, '/multi/cmd_nav', 10)
         self.turn_left = False
         self.turn_right = False
 
         self.create_subscription(LaserScan, 'scan', self.scan_callback, 10)
-        self.timer_control= self.create_timer(0.5, self.control_callback)
+        self.timer_control= self.create_timer(0.05, self.control_callback)
+        
 
     def scan_callback(self, scan_msg):
         self.obstacles = []
@@ -34,18 +35,25 @@ class ScanInterpreter(Node):
 
     def control_callback(self):
         rect = []
-        x_min, x_max, y_min, y_max = -1, 1, -1, 0.5
+        x_min, x_max, y_min, y_max = -0.3, 0.3, 0.00, 0.4
 
+        
+        
         for point in self.obstacles:
-            x, y = point
+            x,y = point
 
-            if y_max > y > y_min and x_min < x < x_max:
+            
+
+            if y_max > y and y > y_min and x_min < x and x < x_max:
                 rect.append(point)
 
-        if rect:  # If obstacles are present
+
+
+
+        if rect :  # If obstacles are present
             obstacle = True
-            left_count = sum(1 for point in rect if y < 0)
-            right_count = sum(1 for point in rect if y > 0)
+            left_count = sum(1 for x,y in rect if y < 0)
+            right_count = sum(1 for x,y in rect if y > 0)
 
             if left_count > right_count:
                 self.turn_left = True
@@ -61,6 +69,7 @@ class ScanInterpreter(Node):
 
         # Publish velocity command based on obstacle distribution
         cmd_vel_msg = Twist()
+        
         if  obstacle:
 
             #cmd_vel_msg.linear.x = 0
@@ -68,10 +77,11 @@ class ScanInterpreter(Node):
             if self.turn_left:
                 cmd_vel_msg.angular.z = 0.5  # Adjust the angular velocity as needed
             elif self.turn_right:
-                cmd_vel_msg.angular.z = -0.5  # Adjust the angular velocity as needed
+                cmd_vel_msg.angular.z = -(0.5)  # Adjust the angular velocity as needed
         else:
-            cmd_vel_msg.linear.x = 0.5  # Forward linear velocity when no obstacles
-
+            cmd_vel_msg.linear.x = 0.3  # Forward linear velocity when no obstacles
+        
+        
         self.cmd_vel_publisher.publish(cmd_vel_msg)
 
 def main():
