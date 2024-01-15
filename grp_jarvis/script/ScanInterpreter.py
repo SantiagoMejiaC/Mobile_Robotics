@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 import math
+from std_msgs.msg import Bool
 
 class ScanInterpreter(Node):
 
@@ -11,7 +12,7 @@ class ScanInterpreter(Node):
 
         self.create_subscription(LaserScan, 'scan', self.scan_callback, 10)
         
-        self.stopPublisher=self.create_publisher(bool,'/move',10)
+        self.stopPublisher=self.create_publisher(Bool,'/move',10)
         #self.create_timer(2, self.stopPublisher)
        
 
@@ -29,7 +30,7 @@ class ScanInterpreter(Node):
                 self.obstacles.append(aPoint)
             angle += scanMsg.angle_increment
 
-    def control_callback(self,bool):
+    def control_callback(self,Bool):
         rect = []
         x_min, x_max,y_min, y_max = -1, 1, 0.0, 0.5  # Define the x and y ranges here
 
@@ -38,7 +39,7 @@ class ScanInterpreter(Node):
         for point in self.obstacles:
             x, y = point
 
-            obstacle=False
+            obstacle=True
 
 
             if  y_max > y > y_min and x_min < x < x_max:

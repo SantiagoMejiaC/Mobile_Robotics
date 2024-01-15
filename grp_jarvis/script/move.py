@@ -16,7 +16,7 @@ class MoveNode(Node):
         self.velocity_publisher = self.create_publisher(Twist, '/cmd_vel', 10)
         
         # Create a subscriber to receive an abort signal
-        self.stopSub = self.create_subscription(bool, 'Stop', self.ScanInterpreter.control_callback, 10)
+        self.stopSub = self.create_subscription(Bool, 'Stop', self.ScanInterpreter.control_callback, 10)
         
         # Flag to track whether an abort signal has been received
         self.abort_signal_received = True
