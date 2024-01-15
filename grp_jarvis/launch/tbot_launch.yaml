@@ -18,6 +18,13 @@ launch:
     #exec: "tuto_vision.py"
     #name: "Vision"
 
+
+#- node:
+    #pkg: "pkg-tbot"
+    #exec: "multiplexer.py"
+    #name: "multiplexer"
+
+
 #- executable:
 #    cmd: gnome-terminal --tab -e 'ros2 run  teleop_twist_keyboard teleop_twist_keyboard'
 

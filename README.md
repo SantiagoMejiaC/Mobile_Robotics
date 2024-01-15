@@ -5,4 +5,8 @@ Softwares and Architectures for Mobile Robotics - Santiago mejia &amp; Yven Luca
 ## Autors
 
 - Santiago mejia
-- Stef
+- Yven Lucas Dienelt
+
+Comments
+project depends on mb6-tbot
+make sure that mb6-tbot project is already installed

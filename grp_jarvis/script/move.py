@@ -14,6 +14,7 @@ class ScanInterpreter(Node):
         super().__init__('scan_interpreter')
         self.obstacles = []
         self.cmd_vel_publisher = self.create_publisher(Twist, '/multi/cmd_nav', 10)
+        #cmd_vel if is simulation and /multi/cmd_nav'if is tbot
         self.turn_left = False
         self.turn_right = False
 
