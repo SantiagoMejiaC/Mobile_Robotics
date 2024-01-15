@@ -1,0 +1,37 @@
+launch:
+- node:
+    pkg: "kobuki_node"
+    exec: "kobuki_ros_node"
+    name: "kobuki_robot"
+    param:
+    -
+      name: "device_port"
+      value: "/dev/kobuki"
+- node:
+    pkg: "urg_node"
+    exec: "urg_node_driver"
+    name: "laser_range"
+    param:
+    -
+      name: "serial_port"
+      value: "/dev/ttyACM0"
+    - 
+      name: "laser_frame_id"
+      value: "laser_link"
+- node: 
+    pkg: "robot_state_publisher"
+    exec: "robot_state_publisher"
+    name: "tbot_state"
+    args: "$(find-pkg-share tbot_node)/urdf/tbot.urdf"
+    param:
+    - 
+      name: "use_sim_time"
+      value: False
+- node:
+    pkg: "tbot_node"
+    exec: "multiplexer"
+    name: "multiplexer"
+    remap:
+    -
+        from: "cmd_vel"
+        to: "commands/velocity"
