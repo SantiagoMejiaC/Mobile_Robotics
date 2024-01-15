@@ -1,12 +1,9 @@
-#!/usr/bin/python3
 import rclpy
 import math
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Bool
-import time
-import random
 
 class ScanInterpreter(Node):
 
@@ -18,7 +15,7 @@ class ScanInterpreter(Node):
         self.turn_right = False
 
         self.create_subscription(LaserScan, 'scan', self.scan_callback, 10)
-        self.timer_control= self.create_timer(0.05, self.control_callback)
+        self.create_subscription(Bool, '/control', self.control_callback, 10)
 
     def scan_callback(self, scan_msg):
         self.obstacles = []
@@ -32,7 +29,7 @@ class ScanInterpreter(Node):
                 self.obstacles.append(a_point)
             angle += scan_msg.angle_increment
 
-    def control_callback(self):
+    def control_callback(self, bool_msg):
         rect = []
         x_min, x_max, y_min, y_max = -1, 1, 0.0, 0.5
 
@@ -61,13 +58,11 @@ class ScanInterpreter(Node):
 
         # Publish velocity command based on obstacle distribution
         cmd_vel_msg = Twist()
-        if  obstacle:
+        if obstacle:
             if self.turn_left:
                 cmd_vel_msg.angular.z = 0.5  # Adjust the angular velocity as needed
             elif self.turn_right:
                 cmd_vel_msg.angular.z = -0.5  # Adjust the angular velocity as needed
-        else:
-            cmd_vel_msg.linear.x = 0.5  # Forward linear velocity when no obstacles
 
         self.cmd_vel_publisher.publish(cmd_vel_msg)
 
