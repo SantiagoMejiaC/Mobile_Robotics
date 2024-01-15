@@ -8,7 +8,7 @@ endif()
 # Python scripts
 install( PROGRAMS script/move.py DESTINATION lib/${PROJECT_NAME})
 install( PROGRAMS script/scan_echo.py DESTINATION lib/${PROJECT_NAME})
-install( PROGRAMS script/signal.py DESTINATION lib/${PROJECT_NAME})
+install( PROGRAMS script/signal_node.py DESTINATION lib/${PROJECT_NAME})
 
 # find dependencies
 find_package(ament_cmake REQUIRED)

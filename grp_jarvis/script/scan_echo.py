@@ -10,7 +10,7 @@ def scan_callback(scanMsg):
     rosNode.get_logger().info( f"scan:\n{scanMsg}" )
 
 rclpy.init()
-rosNode= Node('scan_echo')
+rosNode= Node('scan_interpreter')
 rosNode.create_subscription( LaserScan, 'scan', scan_callback, 10)
 
 while True :

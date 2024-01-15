@@ -5,6 +5,8 @@ from geometry_msgs.msg import Twist
 from std_msgs.msg import Bool
 import random
 
+
+
 # Define a ROS node class for controlling the robot's movement
 class MoveNode(Node):
     def __init__(self):
@@ -14,18 +16,22 @@ class MoveNode(Node):
         self.velocity_publisher = self.create_publisher(Twist, '/cmd_vel', 10)
         
         # Create a subscriber to receive an abort signal
- #       self.abort_subscriber = self.create_subscription(Bool, '/abort_signal', self.abort_callback, 10)
+        self.stopSub = self.create_subscription(bool, 'Stop', self.ScanInterpreter.control_callback, 10)
         
         # Flag to track whether an abort signal has been received
-        self.abort_signal_received = False
+        self.abort_signal_received = True
 
     # Method to move the robot randomly or turn based on the abort signal
     def move_randomly(self):
+
+
         while rclpy.ok():
             self.get_logger().info("Running...")
 
+            
+
             # If no abort signal is received, move randomly
-            if not self.abort_signal_received:
+            if  self.abort_signal_received == False:
                 # Generate random linear and angular velocities
                 velo = Twist()
                 velo.linear.x = 0.5 # Random linear velocity between -0.5 and 0.5 m/s
@@ -34,7 +40,7 @@ class MoveNode(Node):
             else:
                 # If abort signal is received, stop the robot and turn until the signal is not received
                 self.get_logger().info("Abort signal received. Turning...")
-                self.velocity_publisher.publish(Twist())  # Stop the robot
+                self.velocity_publisher.publish(Twist(0))  # Stop the robot
 
                 # Turn until the abort signal is not received
                 while self.abort_signal_received and rclpy.ok():
