@@ -3,30 +3,20 @@ launch:
 - include:
      file: "$(find-pkg-share grp_jarvis)/launch/minimal_launch.yaml"
 
-- node:
-    pkg: "rviz2"
-    exec: "rviz2"
-    name: "rviz2"
     
 - node:
     pkg: "grp_jarvis"
     exec: "move.py"
     name: "scan_interpreter"
 
-#- node:
-    #pkg: "grp_jarvis"
-    #exec: "tuto_vision.py"
-    #name: "Vision"
 
 
-#- node:
-    #pkg: "pkg-tbot"
-    #exec: "multiplexer.py"
-    #name: "multiplexer"
+- node:
+    pkg: "pkg-tbot"
+    exec: "multiplexer.py"
+    name: "multiplexer"
 
 
-#- executable:
-#    cmd: gnome-terminal --tab -e 'ros2 run  teleop_twist_keyboard teleop_twist_keyboard'
 
 
 
