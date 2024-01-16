@@ -1,21 +1,21 @@
 launch:
 
-
 - node:
     pkg: "rviz2"
     exec: "rviz2"
     name: "rviz2"
  
 
-#- node:
- #   pkg: "grp_jarvis"
-  #  exec: "tuto_vision.py"
-   # name: "Vision"
-
-
+- executable:
+    cmd: 'ros2 launch slam_toolbox online_sync_launch.py use_sim_time:=False'
+    
+- executable:
+    cmd: 'ros2 launch nav2_bringup navigation_launch.py'
 
 - executable:
     cmd: gnome-terminal --tab -e 'ros2 run  teleop_twist_keyboard teleop_twist_keyboard --ros-args --remap cmd_vel:=/multi/cmd_teleop'
+    
+
 
 
 
