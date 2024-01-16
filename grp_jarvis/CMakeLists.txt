@@ -13,7 +13,8 @@ install(DIRECTORY
 
 # Python scripts
 install( PROGRAMS script/move.py DESTINATION lib/${PROJECT_NAME})
-install( PROGRAMS script/tuto_vision.py DESTINATION lib/${PROJECT_NAME})
+#install( PROGRAMS script/tuto_vision.py DESTINATION lib/${PROJECT_NAME})
+install( PROGRAMS script/multiplexer.py DESTINATION lib/${PROJECT_NAME})
 # find dependencies
 find_package(ament_cmake REQUIRED)
 # uncomment the following section in order to fill in
