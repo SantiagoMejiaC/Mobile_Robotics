@@ -11,12 +11,6 @@ launch:
 
 
 
-- node:
-    pkg: "pkg-tbot"
-    exec: "multiplexer.py"
-    name: "multiplexer"
-
-
 
 
 
