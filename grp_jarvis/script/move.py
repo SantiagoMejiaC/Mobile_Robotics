@@ -80,12 +80,12 @@ class ScanInterpreter(Node):
 
 
         if len(left_obs)>0 or len(left_obs)>len(right_obs):
-                cmd_vel_msg.angular.z = -1.5  # Adjust the angular velocity as needed
+                self.cmd_vel_msg.angular.z = -1.5  # Adjust the angular velocity as needed
         
         elif len(right_obs)> len(left_obs):
-                cmd_vel_msg.angular.z = 1.5  # Adjust the angular velocity as needed
+                self.cmd_vel_msg.angular.z = 1.5  # Adjust the angular velocity as needed
         else:
-            cmd_vel_msg.linear.x = 0.3  # Forward linear velocity when no obstacles
+            self.cmd_vel_msg.linear.x = 0.3  # Forward linear velocity when no obstacles
         
          
         self.cmd_vel_publisher.publish(cmd_vel_msg)
