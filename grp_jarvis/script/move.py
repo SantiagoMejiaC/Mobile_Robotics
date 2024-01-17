@@ -19,7 +19,8 @@ class ScanInterpreter(Node):
         #cmd_vel if is simulation and /multi/cmd_nav'if is tbot
         self.create_subscription(LaserScan, 'scan', self.scan_callback, 10)
         # self.create_timer(0.05,self.control_callback,10)
-       
+        self.cmd_vel_msg = Twist()
+
         
 
     def scan_callback(self, scan_msg):
@@ -28,7 +29,7 @@ class ScanInterpreter(Node):
         angle = scan_msg.angle_min
         for a_distance in scan_msg.ranges:
 
-            if 0.1 < a_distance and a_distance < 0.8:
+            if 0.1 < a_distance and a_distance < 1:
                 a_point = [
                     math.cos(angle) * a_distance,
                     math.sin(angle) * a_distance,
@@ -69,7 +70,6 @@ class ScanInterpreter(Node):
         left_obs=[]
         right_obs=[]
         
-        self.cmd_vel_msg = Twist()
         for a_point in self.obstacles:
             
             if 0.1<a_point[0]<0.5 and 0.01 < a_point[1] < 0.2 :
@@ -80,15 +80,17 @@ class ScanInterpreter(Node):
 
 
         if len(left_obs)>0 or len(left_obs)>len(right_obs):
-                cmd_vel_msg.angular.z = -1.5  # Adjust the angular velocity as needed
+                self.cmd_vel_msg.angular.z = -1.5  # Adjust the angular velocity as needed
+                self.cmd_vel_msg.linear.x =0
         
         elif len(right_obs)> len(left_obs):
-                cmd_vel_msg.angular.z = 1.5  # Adjust the angular velocity as needed
+                self.cmd_vel_msg.angular.z = 1.5  # Adjust the angular velocity as needed
+                self.cmd_vel_msg.linear.x =0
         else:
-            cmd_vel_msg.linear.x = 0.3  # Forward linear velocity when no obstacles
-        
+            self.cmd_vel_msg.linear.x = 0.3# Forward linear velocity when no obstacles
+            self.cmd_vel_msg.angular.z=0.0
          
-        self.cmd_vel_publisher.publish(cmd_vel_msg)
+        self.cmd_vel_publisher.publish(self.cmd_vel_msg)
 
 
           #  if y_max > y and y > y_min and x_min < x and x < x_max:
@@ -129,12 +131,16 @@ def main():
     rclpy.init()
 
     scan_interpreter = ScanInterpreter()
-    
-    while True:
-        rclpy.spin_once(scan_interpreter,timeout_sec=0.1 )
-   
-    scan_interpreter.destroy_node()
-    rclpy.shutdown()
-        
+
+    executor = rclpy.executors.MultiThreadedExecutor()
+    executor.add_node(scan_interpreter)
+
+    try:
+        executor.spin()
+    finally:
+        executor.shutdown()
+        scan_interpreter.destroy_node()
+        rclpy.shutdown()
+
 if __name__ == '__main__':
     main()
