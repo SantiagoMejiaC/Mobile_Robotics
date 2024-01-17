@@ -15,6 +15,8 @@ class ScanInterpreter(Node):
         super().__init__('scan_interpreter')
         
         self.obstacles = []
+        self.left_obs=[]
+        self.right_obs=[]
         self.cmd_vel_publisher = self.create_publisher(Twist, '/multi/cmd_nav', 10)
         #cmd_vel if is simulation and /multi/cmd_nav'if is tbot
         self.create_subscription(LaserScan, 'scan', self.scan_callback, 10)
@@ -36,7 +38,7 @@ class ScanInterpreter(Node):
                     0.0
                 ]
                 self.obstacles.append(a_point)
-
+        
                 
 
 
@@ -57,35 +59,36 @@ class ScanInterpreter(Node):
 
 
     def isTurning(self):
-        return self.cmd_vel_msg.angular.z != 0
+        return self.cmd_vel_msg.angular.z != 0.0
     
     def isObstacleFound(self):
-        return len(self.obstacles) != 0
+        return (len(self.left_obs)+ len(self.right_obs)) != 0.0
 
     def control_callback(self):
+        self.left_obs=[]
+        self.right_obs=[]
         if self.isTurning() and self.isObstacleFound():
             self.cmd_vel_publisher.publish(self.cmd_vel_msg)
             return
         
-        left_obs=[]
-        right_obs=[]
+        
         
         for a_point in self.obstacles:
             
             if 0.1<a_point[0]<0.5 and 0.01 < a_point[1] < 0.2 :
-                    left_obs.append(a_point)
+                    self.left_obs.append(a_point)
 
             if 0.1<a_point[0]<0.5 and -0.01 > a_point[1] > -0.2 :
-                    right_obs.append(a_point)     
+                    self.right_obs.append(a_point)     
 
 
-        if len(left_obs)>0 or len(left_obs)>len(right_obs):
+        if len(self.left_obs)>0 or len(self.left_obs)>len(self.right_obs):
                 self.cmd_vel_msg.angular.z = -1.5  # Adjust the angular velocity as needed
-                self.cmd_vel_msg.linear.x =0
+                self.cmd_vel_msg.linear.x =0.0
         
-        elif len(right_obs)> len(left_obs):
+        elif len(self.right_obs)> len(self.left_obs):
                 self.cmd_vel_msg.angular.z = 1.5  # Adjust the angular velocity as needed
-                self.cmd_vel_msg.linear.x =0
+                self.cmd_vel_msg.linear.x =0.0
         else:
             self.cmd_vel_msg.linear.x = 0.3# Forward linear velocity when no obstacles
             self.cmd_vel_msg.angular.z=0.0
