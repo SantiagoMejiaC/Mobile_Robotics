@@ -18,7 +18,7 @@ class ScanInterpreter(Node):
         self.cmd_vel_publisher = self.create_publisher(Twist, '/multi/cmd_nav', 10)
         #cmd_vel if is simulation and /multi/cmd_nav'if is tbot
         self.create_subscription(LaserScan, 'scan', self.scan_callback, 10)
-        self.create_timer(0.05,self.control_callback,10)
+        # self.create_timer(0.05,self.control_callback,10)
        
         
 
@@ -28,7 +28,7 @@ class ScanInterpreter(Node):
         angle = scan_msg.angle_min
         for a_distance in scan_msg.ranges:
 
-            if 0.1 < a_distance and a_distance < 10.0:
+            if 0.1 < a_distance and a_distance < 0.8:
                 a_point = [
                     math.cos(angle) * a_distance,
                     math.sin(angle) * a_distance,
@@ -40,7 +40,7 @@ class ScanInterpreter(Node):
 
 
             angle += scan_msg.angle_increment
-
+        self.control_callback()
         
 
 #      if len(left_obs)>0 or len(left_obs)>len(right_obs):
@@ -55,11 +55,21 @@ class ScanInterpreter(Node):
 #        self.cmd_vel_publisher.publish(cmd_vel_msg)
 
 
+    def isTurning(self):
+        return self.cmd_vel_msg.angular.z != 0
+    
+    def isObstacleFound(self):
+        return len(self.obstacles) != 0
+
     def control_callback(self):
+        if self.isTurning() and self.isObstacleFound():
+            self.cmd_vel_publisher.publish(self.cmd_vel_msg)
+            return
+        
         left_obs=[]
         right_obs=[]
         
-        cmd_vel_msg = Twist()
+        self.cmd_vel_msg = Twist()
         for a_point in self.obstacles:
             
             if 0.1<a_point[0]<0.5 and 0.01 < a_point[1] < 0.2 :
