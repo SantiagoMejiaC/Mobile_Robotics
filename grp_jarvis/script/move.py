@@ -8,7 +8,7 @@ from geometry_msgs.msg import Twist
 from std_msgs.msg import Bool
 import time
 import random
-from kobuki_ros_interfaces.msg import WheelDropEvent, ButtonEvent
+from kobuki_ros_interfaces.msg import WheelDropEvent
 
 class ScanInterpreter(Node):
 
@@ -20,7 +20,7 @@ class ScanInterpreter(Node):
         self.right_obs=[]
         self.leftWheelDropped = False
         self.rightWheelDropped = False
-        self.stopped = False
+        self.stopped = True
         self.cmd_vel_publisher = self.create_publisher(Twist, '/multi/cmd_nav', 10)
         #cmd_vel if is simulation and /multi/cmd_nav'if is tbot
         self.create_subscription(LaserScan, 'scan', self.scan_callback, 10)
@@ -29,11 +29,37 @@ class ScanInterpreter(Node):
         self.cmd_vel_msg = Twist()
 
 
+    def wheel_callback(self, wheel_msg):
+        rightWheel = wheel_msg.wheel==1
+        Dropped = wheel_msg.state==1
 
+        if rightWheel and Dropped:
+            self.rightWheelDropped = True
+
+        elif rightWheel and not Dropped:
+            self.rightWheelDropped = False
+
+        elif not rightWheel and Dropped:
+            self.leftWheelDropped = True
+
+        elif not rightWheel and not Dropped:
+            self.leftWheelDropped = False
+
+        if self.robotLift():
+            self.stopped = True
+            self.cmd_vel_msg.angular.z = 0.0  # Adjust the angular velocity as needed
+            self.cmd_vel_msg.linear.x =0.0
+            print('lift')
+
+        elif self.robotGround() and self.stopped:
+            time.sleep(2)
+            self.stopped = False
+            print('groun')
         
 
     def scan_callback(self, scan_msg):
         self.obstacles = []
+
        
         angle = scan_msg.angle_min
         for a_distance in scan_msg.ranges:
@@ -50,30 +76,11 @@ class ScanInterpreter(Node):
 
 
             angle += scan_msg.angle_increment
-        self.control_callback()
+
+        if self.stopped == False:
+            self.control_callback()
         
-    def wheel_callback(self, wheel_msg):
-        rightWheel = wheel_msg.wheel==1
-        dropped = wheel_msg.state==1
-
-        if rightWheel and dropped:
-            self.rightWheelDropped = True
-
-        elif rightWheel and not dropped:
-            self.rightWheelDropped = False
-
-        elif not rightWheel and dropped:
-            self.leftWheelDropped = True
-
-        elif not rightWheel and not dropped:
-            self.leftWheelDropped = False
-
-        if self.robotLift():
-            self.stopped = True
-
-        elif self.robotGround() and self.stopped:
-            time.sleep(2)
-            self.stopped = False
+    
 
   
 
@@ -94,7 +101,7 @@ class ScanInterpreter(Node):
     def control_callback(self):
         self.left_obs=[]
         self.right_obs=[]
-        if self.isTurning() and self.isObstacleFound() and  (self.stopped == False):
+        if self.isTurning() and self.isObstacleFound() :
             self.cmd_vel_publisher.publish(self.cmd_vel_msg)
             return
         
@@ -121,8 +128,7 @@ class ScanInterpreter(Node):
             self.cmd_vel_msg.linear.x = 0.3# Forward linear velocity when no obstacles
             self.cmd_vel_msg.angular.z=0.0
 
-        if  self.stopped == False:
-            self.cmd_vel_publisher.publish(self.cmd_vel_msg)
+        self.cmd_vel_publisher.publish(self.cmd_vel_msg)
 
 
           #  if y_max > y and y > y_min and x_min < x and x < x_max:
@@ -138,6 +144,8 @@ def main():
     executor = rclpy.executors.MultiThreadedExecutor()
     executor.add_node(scan_interpreter)
 
+
+    
     try:
         executor.spin()
     finally:
