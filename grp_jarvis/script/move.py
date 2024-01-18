@@ -18,8 +18,8 @@ class ScanInterpreter(Node):
         self.obstacles = []
         self.left_obs=[]
         self.right_obs=[]
-        self.leftWheelDroped = False
-        self.rightWheelDroped = False
+        self.leftWheelDropped = False
+        self.rightWheelDropped = False
         self.stopped = False
         self.cmd_vel_publisher = self.create_publisher(Twist, '/multi/cmd_nav', 10)
         #cmd_vel if is simulation and /multi/cmd_nav'if is tbot
@@ -79,10 +79,10 @@ class ScanInterpreter(Node):
 
 
     def robotLift(self):
-         return self.leftWheelDroped and self.rightWheelDroped
+         return self.leftWheelDropped and self.rightWheelDropped
     
     def robotGround(self):
-         return  not self.leftWheelDroped and not self.rightWheelDroped
+         return  not self.leftWheelDropped and not self.rightWheelDropped
 
 
     def isTurning(self):
