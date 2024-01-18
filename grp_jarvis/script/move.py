@@ -53,8 +53,8 @@ class ScanInterpreter(Node):
         self.control_callback()
         
     def wheel_callback(self, wheel_msg):
-        rightWheel = wheel_msg.wheel
-        dropped = wheel_msg.state
+        rightWheel = wheel_msg.wheel==1
+        dropped = wheel_msg.state==1
 
         if rightWheel and dropped:
             self.rightWheelDropped = True
@@ -70,17 +70,12 @@ class ScanInterpreter(Node):
 
         if self.robotLift():
             self.stopped = True
-            self.emergencyStop()
-            
+
         elif self.robotGround() and self.stopped:
-            time.sleep(5)
+            time.sleep(2)
             self.stopped = False
 
-    def emergencyStop(self):
-        self.cmd_vel_msg.angular.z = 0.0 
-        self.cmd_vel_msg.linear.x =0.0
-        self.cmd_vel_publisher.publish(self.cmd_vel_msg)
-        return
+  
 
 
     def robotLift(self):
@@ -99,7 +94,7 @@ class ScanInterpreter(Node):
     def control_callback(self):
         self.left_obs=[]
         self.right_obs=[]
-        if self.isTurning() and self.isObstacleFound() :
+        if self.isTurning() and self.isObstacleFound() and  (self.stopped == False):
             self.cmd_vel_publisher.publish(self.cmd_vel_msg)
             return
         
@@ -125,8 +120,9 @@ class ScanInterpreter(Node):
         else:
             self.cmd_vel_msg.linear.x = 0.3# Forward linear velocity when no obstacles
             self.cmd_vel_msg.angular.z=0.0
-         
-        self.cmd_vel_publisher.publish(self.cmd_vel_msg)
+
+        if  self.stopped == False:
+            self.cmd_vel_publisher.publish(self.cmd_vel_msg)
 
 
           #  if y_max > y and y > y_min and x_min < x and x < x_max:
