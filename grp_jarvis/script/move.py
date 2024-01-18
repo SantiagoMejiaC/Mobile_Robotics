@@ -8,6 +8,7 @@ from geometry_msgs.msg import Twist
 from std_msgs.msg import Bool
 import time
 import random
+from kobuki_ros_interfaces.msg import WheelDropEvent, ButtonEvent
 
 class ScanInterpreter(Node):
 
@@ -17,11 +18,17 @@ class ScanInterpreter(Node):
         self.obstacles = []
         self.left_obs=[]
         self.right_obs=[]
+        self.leftWheelDroped = False
+        self.rightWheelDroped = False
+        self.stopped = False
         self.cmd_vel_publisher = self.create_publisher(Twist, '/multi/cmd_nav', 10)
         #cmd_vel if is simulation and /multi/cmd_nav'if is tbot
         self.create_subscription(LaserScan, 'scan', self.scan_callback, 10)
+        self.create_subscription(WheelDropEvent, 'events/wheel_drop', self.wheel_callback, 50)
         # self.create_timer(0.05,self.control_callback,10)
         self.cmd_vel_msg = Twist()
+
+
 
         
 
@@ -45,17 +52,42 @@ class ScanInterpreter(Node):
             angle += scan_msg.angle_increment
         self.control_callback()
         
+    def wheel_callback(self, wheel_msg):
+        rightWheel = wheel_msg.wheel
+        dropped = wheel_msg.state
 
-#      if len(left_obs)>0 or len(left_obs)>len(right_obs):
-#                cmd_vel_msg.angular.z = -1.5  # Adjust the angular velocity as needed
-#        
-#        elif len(right_obs)> len(left_obs):
-#                cmd_vel_msg.angular.z = 1.5  # Adjust the angular velocity as needed
-#        else:
-#            cmd_vel_msg.linear.x = 0.3  # Forward linear velocity when no obstacles
-#        
-#         
-#        self.cmd_vel_publisher.publish(cmd_vel_msg)
+        if rightWheel and dropped:
+            self.rightWheelDropped = True
+
+        elif rightWheel and not dropped:
+            self.rightWheelDropped = False
+
+        elif not rightWheel and dropped:
+            self.leftWheelDropped = True
+
+        elif not rightWheel and not dropped:
+            self.leftWheelDropped = False
+
+        if self.robotLift():
+            self.stopped = True
+            self.emergencyStop()
+            
+        elif self.robotGround() and self.stopped:
+            time.sleep(5)
+            self.stopped = False
+
+    def emergencyStop(self):
+        self.cmd_vel_msg.angular.z = 0.0 
+        self.cmd_vel_msg.linear.x =0.0
+        self.cmd_vel_publisher.publish(self.cmd_vel_msg)
+        return
+
+
+    def robotLift(self):
+         return self.leftWheelDroped and self.rightWheelDroped
+    
+    def robotGround(self):
+         return  not self.leftWheelDroped and not self.rightWheelDroped
 
 
     def isTurning(self):
@@ -67,11 +99,12 @@ class ScanInterpreter(Node):
     def control_callback(self):
         self.left_obs=[]
         self.right_obs=[]
-        if self.isTurning() and self.isObstacleFound():
+        if self.isTurning() and self.isObstacleFound() :
             self.cmd_vel_publisher.publish(self.cmd_vel_msg)
             return
         
-        
+        self.cmd_vel_msg = Twist()
+
         
         for a_point in self.obstacles:
             
@@ -98,36 +131,7 @@ class ScanInterpreter(Node):
 
           #  if y_max > y and y > y_min and x_min < x and x < x_max:
            #     rect.append(point)
-
-
-
-#
-#        if rect :  # If obstacles are present
-#
-#            
-#            obstacle = True
-#            left_count = sum(1 for x,y in rect if y < 0)
-#            right_count = sum(1 for x,y in rect if y > 0)
-#
-#            if left_count > right_count:
-#                self.turn_left = True
-#                self.turn_right = False
-#            else:
-#                self.turn_left = False
-#                self.turn_right = True
-#
-#        else:
-#            obstacle = False
-#            self.turn_left = False
-#            self.turn_right = False
-#
-#        # Publish velocity command based on obstacle distribution
-#        
-#        if  obstacle:
-#
-#            #cmd_vel_msg.linear.x = 0
-#
-            
+          
         
 
 def main():
