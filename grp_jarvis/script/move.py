@@ -8,53 +8,53 @@ from geometry_msgs.msg import Twist
 from std_msgs.msg import Bool
 import time
 import random
-from kobuki_ros_interfaces.msg import WheelDropEvent
+#from kobuki_ros_interfaces.msg import WheelDropEvent
 
 class ScanInterpreter(Node):
 
     def __init__(self):
         super().__init__('scan_interpreter')
         
-        self.obstacles = []
-        self.left_obs=[]
-        self.right_obs=[]
-        self.leftWheelDropped = False
-        self.rightWheelDropped = False
-        self.stopped = True
+        # self.obstacles = []
+        # self.left_obs=[]
+        # self.right_obs=[]
+        # self.leftWheelDropped = False
+        # self.rightWheelDropped = False
+        # self.stopped = True
         self.cmd_vel_publisher = self.create_publisher(Twist, '/multi/cmd_nav', 10)
         #cmd_vel if is simulation and /multi/cmd_nav'if is tbot
         self.create_subscription(LaserScan, 'scan', self.scan_callback, 10)
-        self.create_subscription(WheelDropEvent, 'events/wheel_drop', self.wheel_callback, 50)
+        #self.create_subscription(WheelDropEvent, 'events/wheel_drop', self.wheel_callback, 50)
         # self.create_timer(0.05,self.control_callback,10)
         self.cmd_vel_msg = Twist()
 
 
-    def wheel_callback(self, wheel_msg):
-        rightWheel = wheel_msg.wheel==1
-        Dropped = wheel_msg.state==1
+    # def wheel_callback(self, wheel_msg):
+    #     rightWheel = wheel_msg.wheel==1
+    #     Dropped = wheel_msg.state==1
 
-        if rightWheel and Dropped:
-            self.rightWheelDropped = True
+    #     if rightWheel and Dropped:
+    #         self.rightWheelDropped = True
 
-        elif rightWheel and not Dropped:
-            self.rightWheelDropped = False
+    #     elif rightWheel and not Dropped:
+    #         self.rightWheelDropped = False
 
-        elif not rightWheel and Dropped:
-            self.leftWheelDropped = True
+    #     elif not rightWheel and Dropped:
+    #         self.leftWheelDropped = True
 
-        elif not rightWheel and not Dropped:
-            self.leftWheelDropped = False
+    #     elif not rightWheel and not Dropped:
+    #         self.leftWheelDropped = False
 
-        if self.robotLift():
-            self.stopped = True
-            self.cmd_vel_msg.angular.z = 0.0  # Adjust the angular velocity as needed
-            self.cmd_vel_msg.linear.x =0.0
-            print('lift')
+    #     if self.robotLift():
+    #         self.stopped = True
+    #         self.cmd_vel_msg.angular.z = 0.0  # Adjust the angular velocity as needed
+    #         self.cmd_vel_msg.linear.x =0.0
+    #         print('lift')
 
-        elif self.robotGround() and self.stopped:
-            time.sleep(2)
-            self.stopped = False
-            print('groun')
+    #     elif self.robotGround() and self.stopped:
+    #         time.sleep(2)
+    #         self.stopped = False
+    #         print('groun')
         
 
     def scan_callback(self, scan_msg):
@@ -77,19 +77,19 @@ class ScanInterpreter(Node):
 
             angle += scan_msg.angle_increment
 
-        if self.stopped == False:
-            self.control_callback()
+        #if self.stopped == False:
+        self.control_callback()
         
     
 
   
 
 
-    def robotLift(self):
-         return self.leftWheelDropped and self.rightWheelDropped
+    # def robotLift(self):
+    #      return self.leftWheelDropped and self.rightWheelDropped
     
-    def robotGround(self):
-         return  not self.leftWheelDropped and not self.rightWheelDropped
+    # def robotGround(self):
+    #      return  not self.leftWheelDropped and not self.rightWheelDropped
 
 
     def isTurning(self):
