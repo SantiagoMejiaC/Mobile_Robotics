@@ -1,94 +1,90 @@
-from visualization_msgs.msg import Marker
-
-from visualization_msgs.msg import MarkerArray
-
+#!/usr/bin/env python3
+from visualization_msgs.msg import Marker, MarkerArray
+import math as math
 import numpy as np
-
 import rclpy
-
 from rclpy.node import Node
-
 from nav_msgs.msg import Odometry
-
 from geometry_msgs.msg import Point
 
-
 class MarkerPublisher(Node):
-
     def __init__(self):
-
         super().__init__('marker_publisher')
-
-        self.publisher = self.create_publisher(MarkerArray, 'marker_array_topic', 10)
-
+        self.publisher = self.create_publisher(MarkerArray, 'marker', 10)
         self.marker_array = MarkerArray()
 
-        self.subs_position_robot = self.create_subscription(Odometry, '/odom', self.listener_callback, 10)
+        self.odom_data = Odometry()
 
-        self.subs_coord_nuke = self.create_subscription(Point, '/coordonnee_objet_ref_robot', self.get_objt_coord, 10)
+        self.subs_position_robot = self.create_subscription(
+            Odometry, '/odom',
+            self.listener_callback, 10)
 
-        self.nuke_coord = Point()
+        # Add fixed markers 
+        self.add_fixed_markers()
 
+        # Publish fixed markers
+        self.publish_markers()
 
-    def listener_callback(self, msgs):
+    def add_fixed_markers(self):
+        # Add fixed markers 
+        self.add_marker(1, 0.0, 0.0, 0.0)
+        self.add_marker(2, 1.0, 1.0, 1.0)
+        self.add_marker(3, -1.0, -1.0, 1.0)
 
-        self.odom_data = msgs
-
-
-    def get_objt_coord(self, msg):
-
-        self.nuke_coord = msg
-
-
-    def transform_coordinates(self):
-
-        x_r, y_r, theta_r = self.position_robot()
-
-        x_obj, y_obj = self.nuke_coord.x, self.nuke_coord.y
-
-        transformation_matrix = np.array([
-
-                                            [np.cos(theta_r), -np.sin(theta_r), x_r],
-
-                                            [np.sin(theta_r), np.cos(theta_r), y_r],
-
-                                            [0, 0, 1]
-
-                                        ])
-
-        object_homogeneous = np.array([x_obj, y_obj, 1])
-
-        transformed_coordinates = np.dot(transformation_matrix, object_homogeneous)[:2]
-
-        return transformed_coordinates
-
-
-    def position_robot(self):
-
-        position = self.odom_data.pose.pose.position
-
-        orientation = self.odom_data.pose.pose.orientation
-
-        return (position.x, position.y, orientation.z)
-
-
-    def add_marker(self):
-
+    def add_marker(self, marker_id, x, y, z):
         marker = Marker()
-
-        marker.header.frame_id = "base_link"
-
-        x, y = self.transform_coordinates()
-
-        marker.pose.position.x, marker.pose.position.y = x, y
+        marker.header.frame_id = "map"
+        marker.header.stamp = self.get_clock().now().to_msg()
+        marker.ns = 'my_namespace'
+        marker.id = marker_id
+        marker.type = Marker.CYLINDER
+        marker.action = Marker.ADD
+        marker.pose.position.x = x
+        marker.pose.position.y = y
+        marker.pose.position.z = z
+        marker.pose.orientation.x = 0.0
+        marker.pose.orientation.y = 0.0
+        marker.pose.orientation.z = 0.0
+        marker.pose.orientation.w = 1.0
+        marker.scale.x = 0.3
+        marker.scale.y = 0.3
+        marker.scale.z = 0.3
+        marker.color.a = 1.0
+        marker.color.r = 0.0
+        marker.color.g = 1.0
+        marker.color.b = 0.0
 
         self.marker_array.markers.append(marker)
 
-
     def publish_markers(self):
-
         self.publisher.publish(self.marker_array)
+        self.get_logger().info('MarkerArray published')
+
+    def listener_callback(self, msgs):
+
+        #self.get_logger().info('receiving data "%s"' %
+        #                       str(self.odom_data))
+        
+        self.odom_data = msgs
+
+
+    def position_robot(self,msgs):
+        position = self.odom_data.pose.pose.position
+        orientation = self.odom_data.pose.pose.orientation
+        (posx, posy, posz) = (position.x, position.y, position.z)
+        (qx, qy, qz, qw) = (orientation.x, orientation.y, orientation.z, orientation.w)
+
+        #print("robot : ", posx, posy, posz)
+        return posx,posy,qz
+
 
 
 def main(args=None):
+    rclpy.init(args=args)
+    marker_publisher = MarkerPublisher()
+    rclpy.spin(marker_publisher)
+    marker_publisher.destroy_node()
+    rclpy.shutdown()
 
+if __name__ == '__main__':
+    main()
