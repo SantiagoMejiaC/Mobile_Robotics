@@ -1,9 +1,12 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import cv2 as cv
 import numpy as np
 import pyrealsense2 as rs
 import math
+import rclpy
+from std_msgs.msg import String
+import time
 
 # RealSense setup
 pipeline = rs.pipeline()
@@ -43,8 +46,20 @@ distance_threshold = 1.0  # Adjust as needed
 # Creating morphological kernel
 kernel = np.ones((3, 3), np.uint8)
 
+# ROS 2 initialization
+rclpy.init()
+node = rclpy.create_node('distance_pub_node')
+publisher = node.create_publisher(String, 'dist_topic', 10)
+
+def publish_distance(distance_msg):
+    publisher.publish(distance_msg)
+
+# Time interval for publishing (in seconds)
+publish_interval = 0.5
+last_publish_time = time.time()
+
 try:
-    while True:
+    while rclpy.ok():
         # RealSense frames
         frames = pipeline.wait_for_frames()
         aligned_frames = align.process(frames)
@@ -91,15 +106,14 @@ try:
 
             # Reset the object_detected flag
             object_detected = False
-
-            
+            distance_text = ""
 
             for pt in zip(*loc[::-1]):
                 rect_center = ((pt[0] + pt[0] + w) // 2, (pt[1] + pt[1] + h) // 2)
                 cv.rectangle(color_image, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
 
                 # Display distance in the center of the rectangle
-                distance_text = "D=" + str(round(distance, 2))
+                distance_text =  str(round(distance, 2))
                 text_size = cv.getTextSize(distance_text, cv.FONT_HERSHEY_DUPLEX, 1, 1)[0]
                 text_position = (rect_center[0] - text_size[0] // 2, rect_center[1] + text_size[1] // 2)
                 cv.putText(color_image, distance_text, text_position, cv.FONT_HERSHEY_DUPLEX, 1, color_info, 1, cv.LINE_AA)
@@ -109,13 +123,19 @@ try:
 
                 object_detected = True
 
-
-
             # Show images
             images = np.hstack((color_image, image_segmented))
 
-        
-            
+            # Check if it's time to publish
+            current_time = time.time()
+            if current_time - last_publish_time >= publish_interval:
+                # Publish distance to ROS 2 topic
+                distance_msg = String()
+                distance_msg.data = distance_text
+                publish_distance(distance_msg)
+
+                last_publish_time = current_time
+
             # Show images
             cv.imshow('RealSense', images)
             cv.waitKey(1)
@@ -131,3 +151,5 @@ except Exception as e:
 
 finally:
     pipeline.stop()
+    node.destroy_node()
+    rclpy.shutdown()
