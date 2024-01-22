@@ -4,6 +4,11 @@ launch:
     pkg: "rviz2"
     exec: "rviz2"
     name: "rviz2"
+
+- node:
+    pkg: "grp_jarvis"
+    exec: "visio10.py"
+    name: "distance_pub_node"
  
 
 - executable:

@@ -5,7 +5,7 @@ import numpy as np
 import pyrealsense2 as rs
 import math
 import rclpy
-from std_msgs.msg import String
+from std_msgs.msg import Int8MultiArray
 import time
 
 # RealSense setup
@@ -22,9 +22,6 @@ pipeline.start(config)
 align_to = rs.stream.depth
 align = rs.align(align_to)
 
-color_info = (0, 0, 255)
-rayon = 10
-
 # Template matching setup
 img_rgb_template = cv.imread('car.png')
 img_gray_template = cv.cvtColor(img_rgb_template, cv.COLOR_BGR2GRAY)
@@ -33,15 +30,15 @@ w, h = template.shape[::-1]
 threshold_template = 0.3
 
 # Segmentation parameters using HSV color space
-color = 60
-lo = np.array([color - 15, 50, 50])
+color = 48
+lo = np.array([color - 15, 70, 70])
 hi = np.array([color + 6, 255, 255])
 
 # Flag to check if the template is detected
 object_detected = False
 
 # Distance threshold for object detection (increased distance)
-distance_threshold = 1.0  # Adjust as needed
+distance_threshold = 10.0  # Adjust as needed
 
 # Creating morphological kernel
 kernel = np.ones((3, 3), np.uint8)
@@ -49,10 +46,9 @@ kernel = np.ones((3, 3), np.uint8)
 # ROS 2 initialization
 rclpy.init()
 node = rclpy.create_node('distance_pub_node')
-publisher = node.create_publisher(String, 'dist_topic', 10)
 
-def publish_distance(distance_msg):
-    publisher.publish(distance_msg)
+# Use the Point message type for the publisher
+publisher = node.create_publisher(Int8MultiArray, 'coordonnee_objet_ref_robot', 10)
 
 # Time interval for publishing (in seconds)
 publish_interval = 0.5
@@ -87,7 +83,15 @@ try:
         depth = depth_frame.get_distance(x, y)
         dx, dy, dz = rs.rs2_deproject_pixel_to_point(color_intrin, [x, y], depth)
         distance = math.sqrt(((dx) ** 2) + ((dy) ** 2) + ((dz) ** 2))
+        # Create a list of coordinates [x, y, z]
+        coords = [dx, dy, dz]
 
+        # Create a message of type Int8MultiArray
+        coords_msg = Int8MultiArray()
+        coords_msg.data = [int(round(value, 0)) for value in coords]
+
+        # Publish the message
+        publisher.publish(coords_msg)
         # Check if the object is within the specified distance
         if distance < distance_threshold:
             # Convert color image to HSV
@@ -113,38 +117,31 @@ try:
                 cv.rectangle(color_image, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
 
                 # Display distance in the center of the rectangle
-                distance_text =  str(round(distance, 2))
+                distance_text = str(round(distance, 2))
                 text_size = cv.getTextSize(distance_text, cv.FONT_HERSHEY_DUPLEX, 1, 1)[0]
                 text_position = (rect_center[0] - text_size[0] // 2, rect_center[1] + text_size[1] // 2)
-                cv.putText(color_image, distance_text, text_position, cv.FONT_HERSHEY_DUPLEX, 1, color_info, 1, cv.LINE_AA)
+                cv.putText(color_image, distance_text, text_position, cv.FONT_HERSHEY_DUPLEX, 1, (0, 0, 255), 1,
+                           cv.LINE_AA)
 
                 # Draw a circle at the center of the rectangle
-                cv.circle(color_image, rect_center, int(rayon), color_info, 2)
+                cv.circle(color_image, rect_center, 10, (0, 0, 255), 2)
 
                 object_detected = True
 
             # Show images
-            images = np.hstack((color_image, image_segmented))
+            # images = np.hstack((color_image, image_segmented))
 
-            # Check if it's time to publish
-            current_time = time.time()
-            if current_time - last_publish_time >= publish_interval:
-                # Publish distance to ROS 2 topic
-                distance_msg = String()
-                distance_msg.data = distance_text
-                publish_distance(distance_msg)
-
-                last_publish_time = current_time
+            
 
             # Show images
-            cv.imshow('RealSense', images)
+            cv.imshow('RealSense', image_segmented)
             cv.waitKey(1)
 
             # Print object detection status in real-time
             if object_detected:
-                print("Bottle detected!")
+                print("Object detected at [x={}, y={}, z={}]".format(coords[0],coords[1],coords[2]))
             else:
-                print("Bottle not detected.")
+                print("Object not detected.")
 
 except Exception as e:
     print(e)
