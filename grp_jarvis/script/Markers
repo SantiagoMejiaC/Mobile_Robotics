@@ -5,7 +5,8 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Point
+from std_msgs.msg import Int8MultiArray
+
 
 class MarkerPublisher(Node):
     def __init__(self):
@@ -18,25 +19,32 @@ class MarkerPublisher(Node):
         self.subs_position_robot = self.create_subscription(
             Odometry, '/odom',
             self.listener_callback, 10)
+        
+        self.subscription = self.create_subscription(
+            Int8MultiArray,
+            'obj_coord',
+            self.get_coord,
+            10
+        )
 
-        # Add fixed markers 
-        self.add_fixed_markers()
+        # Add test markers 
+        self.testmark()
 
-        # Publish fixed markers
-        self.publish_markers()
+        # Publish markers
+        self.pub_mark()
 
-    def add_fixed_markers(self):
-        # Add fixed markers 
-        self.add_marker(1, 0.0, 0.0, 0.0)
-        self.add_marker(2, 1.0, 1.0, 1.0)
+    def testmark(self):
+        # test markers
+        self.add_marker(1, 1.0, 1.0, 1.0)
+        self.add_marker(2, 2.0, 2.0, 1.0)
         self.add_marker(3, -1.0, -1.0, 1.0)
 
-    def add_marker(self, marker_id, x, y, z):
+    def add_marker(self, id, x, y, z):
         marker = Marker()
         marker.header.frame_id = "map"
         marker.header.stamp = self.get_clock().now().to_msg()
         marker.ns = 'my_namespace'
-        marker.id = marker_id
+        marker.id = id
         marker.type = Marker.CYLINDER
         marker.action = Marker.ADD
         marker.pose.position.x = x
@@ -49,33 +57,80 @@ class MarkerPublisher(Node):
         marker.scale.x = 0.3
         marker.scale.y = 0.3
         marker.scale.z = 0.3
-        marker.color.a = 1.0
+        marker.color.a = 1.0 #alpha needs to be 1; if 0 markers zill be insvisible
         marker.color.r = 0.0
         marker.color.g = 1.0
         marker.color.b = 0.0
 
         self.marker_array.markers.append(marker)
 
-    def publish_markers(self):
+    def pub_mark(self):
+
         self.publisher.publish(self.marker_array)
-        self.get_logger().info('MarkerArray published')
+        self.get_logger().info('markers published')
 
     def listener_callback(self, msgs):
 
-        #self.get_logger().info('receiving data "%s"' %
-        #                       str(self.odom_data))
-        
+        #self.get_logger().info('receiving data "%s"' %str(self.odom_data))
+        #uncomment to see received data
         self.odom_data = msgs
+    
+    def get_coord(self,msg):
+         # Read the received Int8MultiArray message and convert it to a Python list
+        received_coords = msg.data
+        self.get_logger().info('Received obj_coord message: {}'.format(received_coords))
+
+        # Append the received coordinates to the array within the instance
+        self.received_coords_array.append(received_coords)
+        
 
 
-    def position_robot(self,msgs):
-        position = self.odom_data.pose.pose.position
+
+    def robpos(self):
+        pos = self.odom_data.pose.pose.position
         orientation = self.odom_data.pose.pose.orientation
-        (posx, posy, posz) = (position.x, position.y, position.z)
-        (qx, qy, qz, qw) = (orientation.x, orientation.y, orientation.z, orientation.w)
 
-        #print("robot : ", posx, posy, posz)
-        return posx,posy,qz
+        #Quaternion orientation is a mathematical representation of orientation in
+        #3D space. It uses a four-dimensional vector, commonly denoted as (x,y,z,w)(x,y,z,w), where (x,y,z)(x,y,z) 
+        #represents the axis of rotation, and ww represents the amount of rotation around that axis.
+        
+        (xrob, yrob, zrob) = (pos.x, pos.y, pos.z)
+        (qox, qoy, qoz, qow) = (orientation.x, orientation.y, orientation.z, orientation.w)
+
+        #print("robot : ", xrob, yrob, posz)
+        return xrob,yrob,qoz
+    
+    def transcoord(self):
+        # Coordinates robot
+        xrob, yrob, rot = self.position_robot()
+
+        # Coordinates of bottle
+        x_obj = self.bottle.x
+        y_obj = self.bottle.y
+
+        # Transformation matrix from robot coord to world coord
+        trans_matrix = np.array([
+            [np.cos(rot), 
+            -np.sin(rot), xrob],
+            [np.sin(rot), 
+            np.cos(rot), yrob],
+            [0, 0, 1]
+        ])
+
+        # Homogeneous coordinates of the bottle
+        obj_homogeneous = np.array([
+            [x_obj],
+            [y_obj],
+            [1]
+        ])
+
+        # Perform the transformation
+        world_coordinates = np.dot(trans_matrix, obj_homogeneous)
+
+        # Extract x and y coordinates from the transformed homogeneous coordinates
+        x_world, y_world, _ = world_coordinates.flatten()
+
+        return x_world, y_world
 
 
 

@@ -48,7 +48,7 @@ rclpy.init()
 node = rclpy.create_node('distance_pub_node')
 
 # Use the Point message type for the publisher
-publisher = node.create_publisher(Int8MultiArray, 'coordonnee_objet_ref_robot', 10)
+publisher = node.create_publisher(Int8MultiArray, 'obj_coord', 10)
 
 # Time interval for publishing (in seconds)
 publish_interval = 0.5
