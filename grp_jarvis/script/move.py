@@ -19,7 +19,7 @@ class ScanInterpreter(Node):
         self.right_obs=[]
         self.leftWheelDropped = False
         self.rightWheelDropped = False
-        self.stopped = True
+        self.stopped = False
         self.cmd_vel_publisher = self.create_publisher(Twist, '/multi/cmd_nav', 10)
         #cmd_vel if is simulation and /multi/cmd_nav'if is tbot
         self.create_subscription(LaserScan, 'scan', self.scan_callback, 10)

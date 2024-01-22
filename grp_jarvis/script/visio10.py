@@ -79,6 +79,7 @@ try:
         color_colormap_dim = color_image.shape
 
         # Use pixel value of depth-aligned color image to get 3D axes
+        
         x, y = int(color_colormap_dim[1] / 2), int(color_colormap_dim[0] / 2)
         depth = depth_frame.get_distance(x, y)
         dx, dy, dz = rs.rs2_deproject_pixel_to_point(color_intrin, [x, y], depth)
@@ -139,9 +140,9 @@ try:
 
             # Print object detection status in real-time
             if object_detected:
-                print("Object detected at [x={}, y={}, z={}]".format(coords[0],coords[1],coords[2]))
+               print("Object detected at [x={}, y={}, z={}]".format(coords[0],coords[1],coords[2]))
             else:
-                print("Object not detected.")
+               print("Object not detected.")
 
 except Exception as e:
     print(e)
