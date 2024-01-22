@@ -79,15 +79,11 @@ try:
         color_colormap_dim = color_image.shape
 
         # Use pixel value of depth-aligned color image to get 3D axes
-        if object_detected:
-            x, y = rect_center
-            depth = depth_frame.get_distance(x, y)
-            dx, dy, dz = rs.rs2_deproject_pixel_to_point(color_intrin, [x, y], depth)
-            distance = math.sqrt(((dx) ** 2) + ((dy) ** 2) + ((dz) ** 2))
-        else:
-            # Provide a default distance or handle accordingly when no object is detected
-            distance = 0.0  # You can set this to any default value or handle it as needed
-
+        
+        x, y = int(color_colormap_dim[1] / 2), int(color_colormap_dim[0] / 2)
+        depth = depth_frame.get_distance(x, y)
+        dx, dy, dz = rs.rs2_deproject_pixel_to_point(color_intrin, [x, y], depth)
+        distance = math.sqrt(((dx) ** 2) + ((dy) ** 2) + ((dz) ** 2))
         # Create a list of coordinates [x, y, z]
         coords = [dx, dy, dz]
 
@@ -97,19 +93,23 @@ try:
 
         # Publish the message
         publisher.publish(coords_msg)
-
-        # Color image processing and template matching
+        # Check if the object is within the specified distance
         if distance < distance_threshold:
+            # Convert color image to HSV
             hsv_image = cv.cvtColor(color_image, cv.COLOR_BGR2HSV)
+
+            # Segmentation in HSV color space
             mask = cv.inRange(hsv_image, lo, hi)
             mask = cv.erode(mask, kernel, iterations=1)
             mask = cv.dilate(mask, kernel, iterations=1)
             image_segmented = cv.bitwise_and(color_image, color_image, mask=mask)
 
+            # Template matching with segmented image
             img_gray_segmented = cv.cvtColor(image_segmented, cv.COLOR_BGR2GRAY)
             res = cv.matchTemplate(img_gray_segmented, template, cv.TM_CCOEFF_NORMED)
             loc = np.where(res >= threshold_template)
 
+            # Reset the object_detected flag
             object_detected = False
             distance_text = ""
 
@@ -117,21 +117,32 @@ try:
                 rect_center = ((pt[0] + pt[0] + w) // 2, (pt[1] + pt[1] + h) // 2)
                 cv.rectangle(color_image, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
 
+                # Display distance in the center of the rectangle
                 distance_text = str(round(distance, 2))
                 text_size = cv.getTextSize(distance_text, cv.FONT_HERSHEY_DUPLEX, 1, 1)[0]
                 text_position = (rect_center[0] - text_size[0] // 2, rect_center[1] + text_size[1] // 2)
                 cv.putText(color_image, distance_text, text_position, cv.FONT_HERSHEY_DUPLEX, 1, (0, 0, 255), 1,
                            cv.LINE_AA)
 
+                # Draw a circle at the center of the rectangle
+                cv.circle(color_image, rect_center, 10, (0, 0, 255), 2)
+
                 object_detected = True
 
+            # Show images
+            # images = np.hstack((color_image, image_segmented))
+
+            
+
+            # Show images
             cv.imshow('RealSense', image_segmented)
             cv.waitKey(1)
 
+            # Print object detection status in real-time
             if object_detected:
-                print("Object detected at [x={}, y={}, z={}]".format(coords[0], coords[1], coords[2]))
+               print("Object detected at [x={}, y={}, z={}]".format(coords[0],coords[1],coords[2]))
             else:
-                print("Object not detected.")
+               print("Object not detected.")
 
 except Exception as e:
     print(e)
