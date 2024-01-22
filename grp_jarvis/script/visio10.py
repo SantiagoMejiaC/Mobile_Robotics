@@ -23,7 +23,7 @@ align_to = rs.stream.depth
 align = rs.align(align_to)
 
 # Template matching setup
-img_rgb_template = cv.imread('car.png')
+img_rgb_template = cv.imread('Bottle.png')
 img_gray_template = cv.cvtColor(img_rgb_template, cv.COLOR_BGR2GRAY)
 template = cv.imread('template.png', 0)
 w, h = template.shape[::-1]
