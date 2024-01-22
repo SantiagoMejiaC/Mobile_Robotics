@@ -15,6 +15,7 @@ install(DIRECTORY
 install( PROGRAMS script/move.py DESTINATION lib/${PROJECT_NAME})
 install( PROGRAMS script/visio10.py DESTINATION lib/${PROJECT_NAME})
 install( PROGRAMS script/multiplexer.py DESTINATION lib/${PROJECT_NAME})
+#install( PROGRAMS script/Markers.py DESTINATION lib/${PROJECT_NAME})
 # find dependencies
 find_package(ament_cmake REQUIRED)
 # uncomment the following section in order to fill in

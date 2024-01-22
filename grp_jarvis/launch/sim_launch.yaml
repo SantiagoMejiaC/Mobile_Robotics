@@ -7,7 +7,7 @@ launch:
 - node:
     pkg: "grp_jarvis"
     exec: "move.py"
-    name: "scan_interpreter"
+    name: "move"
 
 - node:
     pkg: "grp_jarvis"
