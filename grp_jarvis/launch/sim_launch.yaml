@@ -16,6 +16,4 @@ launch:
 
 
 
-#- executable:
- #   cmd: gnome-terminal --tab -e 'ros2 run  tbot_node multiplexer.py'
 
