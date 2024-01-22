@@ -5,7 +5,7 @@ import numpy as np
 import pyrealsense2 as rs
 import math
 import rclpy
-from std_msgs.msg import Int8MultiArray
+from std_msgs.msg import Int8MultiArray, String
 import time
 
 # RealSense setup
@@ -30,8 +30,9 @@ w, h = template.shape[::-1]
 threshold_template = 0.3
 
 # Segmentation parameters using HSV color space
-color = 48
-lo = np.array([color - 15, 70, 70])
+color = 55
+
+lo = np.array([color - 15, 40, 40])
 hi = np.array([color + 6, 255, 255])
 
 # Flag to check if the template is detected
@@ -49,6 +50,7 @@ node = rclpy.create_node('distance_pub_node')
 
 # Use the Point message type for the publisher
 publisher = node.create_publisher(Int8MultiArray, 'obj_coord', 10)
+Bootledetect = node.create_publisher(String, 'NodeDetector', 10)
 
 # Time interval for publishing (in seconds)
 publish_interval = 0.5
@@ -79,7 +81,6 @@ try:
         color_colormap_dim = color_image.shape
 
         # Use pixel value of depth-aligned color image to get 3D axes
-        
         x, y = int(color_colormap_dim[1] / 2), int(color_colormap_dim[0] / 2)
         depth = depth_frame.get_distance(x, y)
         dx, dy, dz = rs.rs2_deproject_pixel_to_point(color_intrin, [x, y], depth)
@@ -93,6 +94,7 @@ try:
 
         # Publish the message
         publisher.publish(coords_msg)
+
         # Check if the object is within the specified distance
         if distance < distance_threshold:
             # Convert color image to HSV
@@ -130,19 +132,18 @@ try:
                 object_detected = True
 
             # Show images
-            # images = np.hstack((color_image, image_segmented))
-
-            
-
-            # Show images
             cv.imshow('RealSense', image_segmented)
             cv.waitKey(1)
 
             # Print object detection status in real-time
             if object_detected:
-               print("Object detected at [x={}, y={}, z={}]".format(coords[0],coords[1],coords[2]))
+                msg = String()
+                msg.data = "Object detected"
+                Bootledetect.publish(msg)
             else:
-               print("Object not detected.")
+                msg2 = String()
+                msg2.data = "Object not detected"
+                Bootledetect.publish(msg2)
 
 except Exception as e:
     print(e)
