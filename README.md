@@ -39,7 +39,7 @@ Launch from the operator device:
 Connect via SSH to launch the necessary launch files with the following commands:
 ```
 ip a
-ssh nom_machine@adresse_ip
+ssh -X nom_machine@adresse_ip
 ```
 Finally we need to make sure that both PCs are in the same subnet.
 ```
