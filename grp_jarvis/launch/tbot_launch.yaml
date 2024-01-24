@@ -9,6 +9,13 @@ launch:
     exec: "move.py"
     name: "scan_interpreter"
 
+#Creates the node "distance_pub_node" which is the one in charge of detecting the green bottle           
+# and measuring distance (Distance is not working)
+- node:
+    pkg: "grp_jarvis"
+    exec: "visio10.py"
+    name: "distance_pub_node"
+
 
 
 
