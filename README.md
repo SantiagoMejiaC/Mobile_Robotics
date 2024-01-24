@@ -48,7 +48,7 @@ This file launches all required files to show autonomous movement in the gazebo 
 #### - tbot_launch.yaml
 This file is meant to be used on the PC that is on the robot. It launches autonomous movement on the physical bot. It includes the minimal_launch.yaml in order to connect to the bot
 #### - visualize.yaml 
-This file is meant to be run on the operator PC. It launches rviz and the slam toolbox to map the area.
+This file is meant to be run on the operator PC. It launches rviz and the slam toolbox to map the area. It also launches a teleop node to control the robot manually.
 
 
 
