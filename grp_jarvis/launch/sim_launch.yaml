@@ -1,6 +1,6 @@
 launch:
 
-#Challenge1 launch file
+#Simulation challenge1 launch file
 - include:
      file: "$(find-pkg-share grp_jarvis)/launch/challenge-1.launch.py"
 
