@@ -33,6 +33,18 @@ cd ~/ros2_ws/
 colcon build
 source ./install/setup.bash
 ```
+## Execution
+In order to run the scrpts on a 2nd Pc which is not on the robot we need to configure an ssh connection.
+Launch from the operator device:
+Connect via SSH to launch the necessary launch files with the following commands:
+```
+ip a
+ssh nom_machine@adresse_ip
+```
+Finally we need to make sure that both PCs are in the same subnet.
+```
+export ROS_DOMAIN_ID=31 #Setup the domain ID
+```
 
 ## Challenges
 All functionalities of challenge 1 are required and used to be able to solve challenge 2
