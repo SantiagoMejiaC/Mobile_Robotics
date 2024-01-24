@@ -5,12 +5,7 @@ launch:
     pkg: "rviz2"
     exec: "rviz2"
     name: "rviz2"
-
-#- node:
- #   pkg: "grp_jarvis"
-  #  exec: "visio10.py"
-   # name: "distance_pub_node"
- 
+    
 #The following two executables run the slam toolbox, who is in charge of creating the map and let the Tbot navigate to certain position
 - executable:
     cmd: 'ros2 launch slam_toolbox online_sync_launch.py use_sim_time:=False'
