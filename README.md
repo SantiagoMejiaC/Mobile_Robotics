@@ -38,12 +38,17 @@ source ./install/setup.bash
 All functionalities of challenge 1 are required and used to be able to solve challenge 2
 
 ### Launch files
-
-
-- sim_launch.yaml
-- tbot_launch.yaml
-- visualize.yaml 
-- 
+The launch files are used to start several nodes at once. As required by the challenge, the functions have been split in three launch files. All files can be launched with the ros2 launch command below.
+```
+ros2 launch grp_jarvis "filename".yaml 
+```
+*replace the filename with the launch file you want to execute
+#### - sim_launch.yaml
+This file launches all required files to show autonomous movement in the gazebo simulation and includes the challenge1.yaml to open all necessary nodes. It can be used to see results without a physical robot.
+#### - tbot_launch.yaml
+This file is meant to be used on the PC that is on the robot. It launches autonomous movement on the physical bot. It includes the minimal_launch.yaml in order to connect to the bot
+#### - visualize.yaml 
+This file is meant to be run on the operator PC. It launches rviz and the slam toolbox to map the area.
 
 
 
