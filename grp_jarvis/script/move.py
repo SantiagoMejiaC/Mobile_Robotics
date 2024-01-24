@@ -134,16 +134,16 @@ class ScanInterpreter(Node):
 
         if len(self.left_obs)>0 or len(self.left_obs)>len(self.right_obs):
                 self.cmd_vel_msg.angular.z = -1.5  # Adjust the angular velocity as needed
-                self.cmd_vel_msg.linear.x =0.0
+                self.cmd_vel_msg.linear.x =0.0     # Adjust the linear velocity as needed
         
         elif len(self.right_obs)> len(self.left_obs):
                 self.cmd_vel_msg.angular.z = 1.5  # Adjust the angular velocity as needed
-                self.cmd_vel_msg.linear.x =0.0
+                self.cmd_vel_msg.linear.x =0.0    # Adjust the linear velocity as needed
         else:
-            self.cmd_vel_msg.linear.x = 0.3# Forward linear velocity when no obstacles
-            self.cmd_vel_msg.angular.z=0.0
+            self.cmd_vel_msg.linear.x = 0.3 # Forward linear velocity when no obstacles
+            self.cmd_vel_msg.angular.z=0.0  # Stops all turning posible
 
-        self.cmd_vel_publisher.publish(self.cmd_vel_msg)
+        self.cmd_vel_publisher.publish(self.cmd_vel_msg) #Publishes the velocity so the autonomous move can work
 
 
       
