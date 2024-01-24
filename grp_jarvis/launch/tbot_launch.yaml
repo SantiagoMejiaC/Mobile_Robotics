@@ -1,9 +1,9 @@
 launch:
-#include another launch file
+# Minimal launch for the TBOT
 - include:
      file: "$(find-pkg-share grp_jarvis)/launch/minimal_launch.yaml"
 
-    
+# Create node Move 
 - node:
     pkg: "grp_jarvis"
     exec: "move.py"
