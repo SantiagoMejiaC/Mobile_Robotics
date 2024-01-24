@@ -131,11 +131,11 @@ try:
 
                 object_detected = True
 
-            # Show images
-            cv.imshow('RealSense', image_segmented)
-            cv.waitKey(1)
+            # Show images (It is commented so it doesn't show the image because it's very laggy, but if you wanna se the bootle detection working just uncomment it)
+            #cv.imshow('RealSense', image_segmented)
+            #cv.waitKey(1)
 
-            # Print object detection status in real-time
+            # Publishes object detection status in real-time to the node Bootledetect
             if object_detected:
                 msg = String()
                 msg.data = "Object detected"
