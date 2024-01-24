@@ -1,14 +1,16 @@
 launch:
-#include another launch file
+
+#Challenge1 launch file
 - include:
      file: "$(find-pkg-share grp_jarvis)/launch/challenge-1.launch.py"
 
-    
+# Create node Move     
 - node:
     pkg: "grp_jarvis"
     exec: "move.py"
     name: "move"
 
+#Create node Multiplexer   
 - node:
     pkg: "grp_jarvis"
     exec: "multiplexer.py"
