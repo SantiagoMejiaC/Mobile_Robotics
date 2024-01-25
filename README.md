@@ -41,7 +41,7 @@ Connect via SSH to launch the tbot-launch launch file with the following command
 ip a
 ssh -X nom_machine@adresse_ip
 ```
-After the SSH connection, you meed to connect to the same SUBNET and DOMAIN ID so you can recieve the prover information and can launch the visualize launch file.
+After the SSH connection, you meed to connect to the same SUBNET and DOMAIN ID so you can recieve the proper information and can launch the visualize launch file.
 
 First you have to change from the LOCALHOST to the SUBNET with the following command:
 ```
