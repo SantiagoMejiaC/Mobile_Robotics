@@ -39,15 +39,15 @@ Launch from the operator device:
 Connect via SSH to launch the tbot-launch launch file with the following commands:
 ```
 ip a
-ssh -X nom_machine@adresse_ip
+ssh -X name_machine@adresse_ip
 ```
-After the SSH connection, you meed to connect to the same SUBNET and DOMAIN ID so you can recieve the proper information and can launch the visualize launch file.
+After the SSH connection, you meed to connect to the same SUBNET and DOMAIN ID so you can receive the proper information and can launch the visualize launch file.
 
 First you have to change from the LOCALHOST to the SUBNET with the following command:
 ```
 export ROS_HOSTNAME=SUBNET 
 ```
-After changing from the LOCALHOST into SUBNET, you change de DOMAIN ID so both computers are in the same SUBNET with this command ( execute this command in both computers with the same number ): 
+After changing from the LOCALHOST into SUBNET, you change the DOMAIN ID so both computers are in the same SUBNET with this command (execute this command in both computers with the same number): 
 
 ```
 export ROS_DOMAIN_ID=31 #Setup the domain ID
