@@ -36,12 +36,19 @@ source ./install/setup.bash
 ## Configuring the PCs
 In order to run the scrpts on a 2nd Pc which is not on the robot we need to configure an ssh connection.
 Launch from the operator device:
-Connect via SSH to launch the necessary launch files with the following commands:
+Connect via SSH to launch the tbot-launch launch file with the following commands:
 ```
 ip a
 ssh -X nom_machine@adresse_ip
 ```
-Finally we need to make sure that both PCs are in the same subnet.
+After the SSH connection, you meed to connect to the same SUBNET and DOMAIN ID so you can recieve the prover information and can launch the visualize launch file.
+
+First you have to change from the LOCALHOST to the SUBNET with the following command:
+```
+export ROS_HOSTNAME=SUBNET 
+```
+After changing from the LOCALHOST into SUBNET, you change de DOMAIN ID so both computers are in the same SUBNET with this command ( execute this command in both computers with the same number ): 
+
 ```
 export ROS_DOMAIN_ID=31 #Setup the domain ID
 ```
